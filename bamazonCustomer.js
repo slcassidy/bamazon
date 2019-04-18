@@ -35,7 +35,7 @@ function afterConnection() {
 
     connection.query('SELECT id, product_name, department_name, price, stock_quantity from products', function (error, results, fields) {
         if (error) throw error;
-        console.log(results)
+        console.table(results)
 
         // *******************Inquire********************
 
@@ -68,7 +68,8 @@ function afterConnection() {
                 // connection.connect()
                 connection.query(`SELECT id, product_name, department_name, price, stock_quantity from products where id = '${inquirerResponse.type}'`, function (error, results, fields) {
                     if (error) throw error;
-                    console.log(results)
+                    console.table(results);
+
                     console.log("************Cart Checkout*************")
                     let quantity = results[0].stock_quantity - inquirerResponse.units;
                     let total = inquirerResponse.units * results[0].price;
