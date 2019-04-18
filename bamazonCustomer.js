@@ -1,25 +1,3 @@
-// Calling the npm installed items
-var mysql      = require('mysql');
-const inquirer = require('inquirer');
-
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : 'MySQL2019!!',
-  database : 'bamazon'
-});
- 
-connection.connect();
- 
-connection.query('SELECT id, product_name, department_name, price, stock_quantity from products', function (error, results, fields) {
-  if (error) throw error;
-//   console.log('The solution is: ', results[0].solution);
-// console.log(fields)
-console.log(results)
-});
- 
-connection.end();
-
 // Using sequelize
 // const db = require('./models');
 
@@ -30,71 +8,126 @@ connection.end();
 //   });
 // });
 
-// *******************Inquire********************
-
-inquirer
-  .prompt([
-    // Ask them from a list what they want to search for
-    {
-      type: 'list',
-      message: 'What search category would you like to choose?',
-      choices: [`Songs`, `Bands`, `Movies`],
-      name: 'type'
-    },
-    // Here we ask the user to confirm.
-    {
-      type: 'confirm',
-      message: 'Are you sure:',
-      name: 'confirm',
-      default: true
-    },
-        // Here we create a basic text prompt.
-        {
-          type: 'input',
-          message: 'What would you like to search for today?',
-          name: 'search'
-        }   
+// Calling the npm installed items
+var mysql = require('mysql');
+const inquirer = require('inquirer');
 
 
-  ])
-  .then(function(inquirerResponse) {
-
-
-  
-//*******************Variables*********************** 
-    let select = "";
-    // view = inquirerResponse.search
-    console.log(inquirerResponse.search)
-    console.log(inquirerResponse.type)
-
-
-// Case switch to identify which response to remove from inventory
-
-
-      switch(inquirerResponse.type){
-        case `Movies`:
-        select = queryOmdb;
-        break;
-//         case 'Bands':
-//         select = queryBand;
-//         break;
-          case 'Songs':
-          spot();
-          break;
-        default:
-        console.log ("Not Available")
-      };
-
-     
-  axios.get(select).then(function(response) {
-    // If the request was successful...
-    if (response.status === 200) {    
-      // Then log the data from the site!
-      console.log(response.data);
-    }    
-  }); //Edn of axios
-
-
-
-
+// Connection
+var connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'MySQL2019!!',
+    database: 'bamazon'
 });
+
+// function for the connection turn on
+connection.connect(function (err) {
+    if (err) throw err;
+    console.log("connected as id " + connection.threadId);
+    afterConnection();
+});
+
+
+
+
+function afterConnection() {
+
+    connection.query('SELECT id, product_name, department_name, price, stock_quantity from products', function (error, results, fields) {
+        if (error) throw error;
+        console.log(results)
+
+        // *******************Inquire********************
+
+        inquirer
+            .prompt([
+                {
+                    type: 'list',
+                    message: 'Please choose which item you would like to buy?',
+                    choices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    // choices: idReturn(),
+                    name: 'type'
+                },
+                {
+                    type: 'confirm',
+                    message: 'Are you sure:',
+                    name: 'confirm',
+                    default: true
+                },
+                {
+                    type: 'input',
+                    message: 'How many units of the product they would like to buy?',
+                    name: 'units'
+                }
+
+
+            ])
+            .then(function (inquirerResponse) {
+                console.log(inquirerResponse.type)
+
+                // connection.connect()
+                connection.query(`SELECT id, product_name, department_name, price, stock_quantity from products where id = '${inquirerResponse.type}'`, function (error, results, fields) {
+                    if (error) throw error;
+                    console.log(results)
+                    console.log("************Cart Checkout*************")
+                    let quantity = results[0].stock_quantity - inquirerResponse.units;
+                    let total = inquirerResponse.units * results[0].price;
+                    // console.log(quantity);
+                    if (quantity < 0) {
+                        console.log("Insufficient quantity!")
+                    } else {
+
+                        connection.query(`update products set stock_quantity = '${quantity}' where id = ${inquirerResponse.type}`, function (err, res) {
+                            if (err) throw err;
+                            let test = parseFloat(total).toFixed(2)
+
+                            // console.log(total);
+                            console.log(`               Total $ ${test}`);
+                            console.log("Thank you for shopping!!  Please come again 🙂");
+                 
+                        });
+
+
+                    }
+                    connection.end();
+                });
+
+            });
+
+
+
+
+        //*******************Variables*********************** 
+        // let select = "";
+        // view = inquirerResponse.search
+        // console.log(inquirerResponse.units)
+
+
+
+        // end;
+
+
+        // Case switch to identify which response to remove from inventory
+
+
+        //   switch(inquirerResponse.type){
+        //     case 1:
+        //     // select = queryOmdb;
+        //     console.log("1 is Chosen")
+        //     break;
+        //     case 2:
+        //     console.log("2 is Chosen")
+        //     break;
+        //       case 3:
+        //       console.log("3 is Chosen")
+        //       break;
+        //     default:
+        //     console.log ("Not Available")
+        //   };
+
+
+
+    }); //End of Inquirer
+} //end of the query connection
+
+
